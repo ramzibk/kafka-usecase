@@ -38,12 +38,18 @@ it is possible to change the number of partitions after a topic is created, but 
 ### publish a record  into a topic (messages are called records in Kafka)  
 `kafka-console-producer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`  
 
+### publish a key-value record into a topic
+`kafka-console-producer.sh --topic usercase.chat.messages --property "parse.key=true" --property "key.separator=:" --bootstrap-server localhost:29092`
+
 ### consume the latest (non read) records from a topic  
 `kafka-console-consumer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`  
 
 ### consume all the records from a topic  
 `kafka-console-consumer.sh --topic usercase.chat.messages --from-beginning --bootstrap-server localhost:29092`  
 
+### consume a key-value record
+`kafka-console-consumer.sh --topic usercase.chat.messages --from-beginning --property "print.key=true" --property "key.separator=:" --bootstrap-server localhost:29092
+`
 ### create a consumer group  
 the creation of a consumer group happens during the creation of a consumer  
 if the group does not exist it will be created, if it exists the consumer will be attached to that group  
@@ -58,7 +64,7 @@ the number of consumers inside a consumer group should not exceed the number of 
 ### view the list of consumer groups created  
 `kafka-consumer-groups.sh -bootstrap-server localhost:9092 -list`  
 
-### viea the details of a consumer group  
+### view the details of a consumer group  
 `kafka-consumer-groups.sh -bootstrap-server localhost:9092 --describe --group ClientAppGroup`  
 
 **output >>**
@@ -69,7 +75,10 @@ ClientAppGroup | usecase.chat.messages | 0          | 20             | 20       
 ClientAppGroup | usecase.chat.messages | 1          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer  
 ClientAppGroup | usecase.chat.messages | 2          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer   
 
-Kafka ensure **at least once delivery** of messages through consumer offsets
+Kafka ensure **at least once delivery** of messages through consumer offsets  
+**CURRENT-OFFSET** is the latest offset of the message sent to the consumer  
+**LOG-END-OFFSET** is the offset of the last message received in the partition     
+**LAG** is the difference between CURRENT-OFFSET and LOG-END-OFFSET
 
 
 
