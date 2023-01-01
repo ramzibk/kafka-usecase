@@ -27,23 +27,31 @@ public class SimpleKafkaConsumer {
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "ClientAppGroup");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        consumer = new KafkaConsumer<String, String>(config);
-        consumer.subscribe(Collections.singletonList(this.topic));
+        consumer = new KafkaConsumer<>(config);
+        try {
+            consumer.subscribe(Collections.singletonList(this.topic));
+        } catch (Exception e) {
+            consumer.close();
+        }
     }
 
     public void poll() {
-        while (true) {
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(60));
+        try {
+            while (true) {
+                ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(60));
 
-            for (ConsumerRecord rec : records) {
-                System.out.println("Message received with key: " + rec.key() + " and value: " + rec.value());
-            }
+                for (ConsumerRecord rec : records) {
+                    System.out.println("Message received with key: " + rec.key() + " and value: " + rec.value());
+                }
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
+        } catch (Exception e) {
+            consumer.close();
         }
     }
 
