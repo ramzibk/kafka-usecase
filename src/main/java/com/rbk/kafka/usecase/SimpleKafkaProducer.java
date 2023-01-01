@@ -28,10 +28,14 @@ public class SimpleKafkaProducer{
 
     public void publish(String topic, String key, String value) {
         Future<RecordMetadata> recordMetadaFuture;
+        try {
+            recordMetadaFuture = producer.send(new ProducerRecord<>(topic, key, value));
 
-        recordMetadaFuture = producer.send(new ProducerRecord<>(topic, key, value));
+            printMetadata(recordMetadaFuture);
+        } catch (Exception e) {
+            producer.close();
+        }
 
-        printMetadata(recordMetadaFuture);
     }
 
     public void publish(String topic, String value) {
