@@ -2,7 +2,7 @@
 A simple kafka publish-subcribe example in Java  
 
 ### create the Zookeeper and Kafka containers   
-`docker-compose -f docker-compose.yml up -d`  
+`docker-compose -f single-broker.yml up -d`  
 
 ### open a bash terminal inside the Kafka container  
 `docker exec -it kafka-broker bash`  
@@ -69,11 +69,11 @@ the number of consumers inside a consumer group should not exceed the number of 
 
 **output >>**
 
-GROUP          | TOPIC                 | PARTITION  | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID                                            | HOST         | CLIENT-ID
--------------- | --------------------- | ---------- |----------------|----------------|-----|--------------------------------------------------------|--------------| ----------------
-ClientAppGroup | usecase.chat.messages | 0          | 20             | 20             | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer 
-ClientAppGroup | usecase.chat.messages | 1          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer  
-ClientAppGroup | usecase.chat.messages | 2          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer   
+| GROUP           | TOPIC                 | PARTITION  | CURRENT-OFFSET | LOG-END-OFFSET | LAG | CONSUMER-ID                                            | HOST         | CLIENT-ID|
+|-----------------| --------------------- | ---------- |----------------|----------------|-----|--------------------------------------------------------|--------------| ----------------|
+| ClientAppGroup  | usecase.chat.messages | 0          | 20             | 20             | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer| 
+| ClientAppGroup  | usecase.chat.messages | 1          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer| 
+| ClientAppGroup  | usecase.chat.messages | 2          | 0              | 0              | 0   | console-consumer-7cb8abdd-7185-4383-a49e-d126970bc4f5  | /172.19.0.3  | console-consumer|   
 
 Kafka ensure **at least once delivery** of messages through consumer offsets  
 **CURRENT-OFFSET** is the latest offset of the message sent to the consumer  
