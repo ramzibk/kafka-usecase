@@ -49,7 +49,7 @@ public class SimpleKafkaProducer{
     private static void printMetadata(Future<RecordMetadata> recordMetadaFuture) {
         try {
             RecordMetadata recordMetadata = recordMetadaFuture.get(3000, TimeUnit.MILLISECONDS);
-            System.out.println("published record to topic "+recordMetadata.topic() + ", partition " +recordMetadata.partition());
+            System.out.println("record with offset "+recordMetadata.offset()+" published to topic "+recordMetadata.topic() + " and partition " +recordMetadata.partition());
         } catch (Exception e) {
             e.printStackTrace();
         }
