@@ -1,71 +1,88 @@
-# kafka-usecase  
-A simple kafka publish-subcribe example in Java  
+# kafka-usecase
+A simple kafka publish-subcribe example. This project builds on the LinkedIn courses :
+* Apache Kafka Essentials Training: Getting Started
+* Apache Kafka Essentials Training: Building Scalable Applications
 
-### create the Zookeeper and Kafka containers   
-`docker-compose -f single-broker.yml up -d`  
+This projects contains 2 docker-compose files:
+* The single-broker.yml builds a single Kafka broker.
+* The kafka-cluster.yml builds a Kafka cluster with 3 kafka brokers.
 
-### open a bash terminal inside the Kafka container  
-`docker exec -it kafka-broker bash`  
+# building and using a single Kafka broker
+### create the Zookeeper and Kafka containers
+`docker-compose -f single-broker.yml up -d`
 
-### go to the kafka scripts directory  
+### open a bash terminal inside the Kafka container
+`docker exec -it kafka-broker bash`
+
+### go to the kafka scripts directory
 `cd /opt/bitnami/kafka/bin`  
 `ls`
 
-### create a Kafka topic  
-`kafka-topics.sh --create --topic usecase.chat.messages --bootstrap-server localhost:2909`  
+### create a Kafka topic
+`kafka-topics.sh --create --topic usecase.chat.messages --bootstrap-server localhost:2909`
 
-2909 is the kafka's port (kafka container's interal port in this case)  
+2909 is the kafka's port (kafka container's interal port in this case)
 
-### create a topic with 2 patitions  
+### create a topic with 2 patitions
 `kafka-topics.sh --create --topic usecase.chat.messages --partitions 2 --bootstrap-server localhost:29092`  
-each consumer will receive messages from one topic partition
-there should not be more consumers than partitions, because otherwise some consumers will be idle and not receive any messges
 
-### change the number of partitions  
-it is possible to change the number of partitions after a topic is created, but this is not recommended  
+Partitions allow for scalability depending on the number of partitions and consumers.  
+With multiple partitions, multiple consumer can consumer messages from a single topic in parallel  
+Partitions are also useful to define the destination of messages based on their message keys.  
+The partition where the message is sent to is chosen by the producer according to the message key hash if a key is 
+defined in the message otherwise it will be chosen using a round-robin method. Custom partition selectors can be implemented.
+Messages with the same key will therefore be sent to same partition, this will guarentee the messages are ordered in the same partition.  
+If the messages have no keys, they will be distributed round-robin and evenly across all the topics's partitions, 
+this will not however preserve the ordering of the input messages.   
+Each consumer will receive messages from one topic partition, however there should not be more consumers than partitions, 
+ otherwise some consumers will be idle and not receive any messages.
 
-`kafka-topics.sh --topic usecase.chat.messages --alter --partitions 3 --bootstrap-server localhost:29092`  
+### change the number of partitions
+It is possible to change the number of partitions after a topic is created, but this is not recommended
 
-### list created Kafka topics  
-`kafka-topics.sh --list --bootstrap-server localhost:29092`  
+`kafka-topics.sh --topic usecase.chat.messages --alter --partitions 3 --bootstrap-server localhost:29092`
 
-### view a topic's configuration  
-`kafka-topics.sh --topic usecase.chat.messages --describe --bootstrap-server localhost:29092`  
+### list created Kafka topics
+`kafka-topics.sh --list --bootstrap-server localhost:29092`
 
-### delete a topic  
-`kafka-topics.sh --delete --topic usercase.chat.messages --bootstrap-server localhost:29092`  
+### view a topic's configuration
+`kafka-topics.sh --topic usecase.chat.messages --describe --bootstrap-server localhost:29092`
 
-### publish a record  into a topic (messages are called records in Kafka)  
-`kafka-console-producer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`  
+### delete a topic
+`kafka-topics.sh --delete --topic usercase.chat.messages --bootstrap-server localhost:29092`
+
+### publish a record  into a topic (messages are called records in Kafka)
+`kafka-console-producer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`
 
 ### publish a key-value record into a topic
 `kafka-console-producer.sh --topic usercase.chat.messages --property "parse.key=true" --property "key.separator=:" --bootstrap-server localhost:29092`
 
-### consume the latest (non read) records from a topic  
-`kafka-console-consumer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`  
+### consume the latest (non read) records from a topic
+`kafka-console-consumer.sh --topic usercase.chat.messages --bootstrap-server localhost:29092`
 
-### consume all the records from a topic  
-`kafka-console-consumer.sh --topic usercase.chat.messages --from-beginning --bootstrap-server localhost:29092`  
+### consume all the records from a topic
+`kafka-console-consumer.sh --topic usercase.chat.messages --from-beginning --bootstrap-server localhost:29092`
 
 ### consume a key-value record
 `kafka-console-consumer.sh --topic usercase.chat.messages --from-beginning --property "print.key=true" --property "key.separator=:" --bootstrap-server localhost:29092
 `
-### create a consumer group  
-the creation of a consumer group happens during the creation of a consumer  
-if the group does not exist it will be created, if it exists the consumer will be attached to that group  
+### create a consumer group
+The creation of a consumer group happens during the creation of a consumer  
+If the group does not exist it will be created, if it exists the consumer will be attached to that group
 
-`kafka-console-consumer.sh --bootstrap-server localhost:29092 --group ClientAppGroup --topic usecase.chat.messages`  
+`kafka-console-consumer.sh --bootstrap-server localhost:29092 --group ClientAppGroup --topic usecase.chat.messages`
 
-all messages from a topic will be sent to the consumer-group   
-the consumer-group distributes the messages over all consumers inside it, which allows for scaling  
-messages will be consumed by only one consumer inside the consumer-group   
-the number of consumers inside a consumer group should not exceed the number of partitions in a topic  
+All messages from a topic will be sent to the consumer-group   
+The consumer-group distributes the messages over all consumers inside it, which allows for scaling  
+Messages will be consumed by only one consumer inside the consumer-group   
+The number of consumers inside a consumer group should not exceed the number of partitions in a topic
+otherwise some consumers would be idle and not receive any messages  
 
-### view the list of consumer groups created  
-`kafka-consumer-groups.sh -bootstrap-server localhost:9092 -list`  
+### view the list of consumer groups created
+`kafka-consumer-groups.sh -bootstrap-server localhost:9092 -list`
 
-### view the details of a consumer group  
-`kafka-consumer-groups.sh -bootstrap-server localhost:9092 --describe --group ClientAppGroup`  
+### view the details of a consumer group
+`kafka-consumer-groups.sh -bootstrap-server localhost:9092 --describe --group ClientAppGroup`
 
 **output >>**
 
@@ -80,5 +97,26 @@ Kafka ensure **at least once delivery** of messages through consumer offsets
 **LOG-END-OFFSET** is the offset of the last message received in the partition     
 **LAG** is the difference between CURRENT-OFFSET and LOG-END-OFFSET
 
+### Create a Kafka Consumer and Producer for the simple Kafka broker
+The class files are located under src/main/java: The Main.java class creates a producer instance to send a message (Record)
+to the Kafka broker and a consumer to consume the message.
 
+# Building a Kafka Cluster
+To build the kafka cluster star up the kafka-cluster.yml file
+`docker-compose -f kafka-cluster.yml up -d`
+
+The docker file also builds a container for Kafdrop, a simple UI to monitor Kafka brokers
+To access Kafkadrop open http://localhost:9000 in the browser
+
+[Kafka Tool](https://www.kafkatool.com/) (renamed to Offset Explorer) is another free software that can be used 
+to view and manage the Kafka Topics, Partition, etc
+
+Having created a cluster with 3 brokers, we can then create topic having a replication factor of 2 which means that each 
+Topic's partition will be replicated in 2 Brokers, a 'Partition-Leader' Broker (the one that owns the partition) and a 'Partition-Follower' Broker
+that will hold a replica of that partition.   
+
+In a Kafka Cluster there is always one partition leader only per partition at time and one or many partition followers for that partition.  
+If the Partition Leader goes down, Kafka will assign the partition to another Broker (if exists) which will become the new Partition Leader.  
+If the there are more partitions brokers, some brokers will become the Partition Leaders for multiple partitions.  
+When the partition leader goes down kafka will select a new partition leader from the still available brokers.  
 
