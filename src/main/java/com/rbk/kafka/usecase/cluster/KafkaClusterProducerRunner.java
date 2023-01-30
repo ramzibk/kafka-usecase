@@ -1,4 +1,6 @@
-package com.rbk.kafka.usecase;
+package com.rbk.kafka.usecase.cluster;
+
+import com.rbk.kafka.usecase.singlebroker.SimpleKafkaProducer;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;

@@ -1,4 +1,6 @@
-package com.rbk.kafka.usecase;
+package com.rbk.kafka.usecase.cluster;
+
+import com.rbk.kafka.usecase.singlebroker.SimpleKafkaConsumer;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
