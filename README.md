@@ -1,4 +1,4 @@
-# kafka-usecase
+# Kafka usecase
 A simple kafka publish-subcribe example. This project builds on the LinkedIn courses :
 * Apache Kafka Essentials Training: Getting Started
 * Apache Kafka Essentials Training: Building Scalable Applications
@@ -7,7 +7,7 @@ This projects contains 2 docker-compose files:
 * The single-broker.yml builds a single Kafka broker.
 * The kafka-cluster.yml builds a Kafka cluster with 3 kafka brokers.
 
-# building and using a single Kafka broker
+# Building and using a single Kafka broker
 ### create the Zookeeper and Kafka containers
 `docker-compose -f single-broker.yml up -d`
 
@@ -119,4 +119,67 @@ In a Kafka Cluster there is always one partition leader only per partition at ti
 If the Partition Leader goes down, Kafka will assign the partition to another Broker (if exists) which will become the new Partition Leader.  
 If the there are more partitions brokers, some brokers will become the Partition Leaders for multiple partitions.  
 When the partition leader goes down kafka will select a new partition leader from the still available brokers.  
+
+Messages are sent to a producer using the Client API send(ProducerRecord) method.
+When the producer receives a message it serializes it, send it the Leading Partition which in turn
+sends back an Acknowledgement
+
+a local Batch is maintained on the producer side on a per partition basis to contain messages to be dispatched to the partition leader.  
+The batch of messages will be dispatched to the Leader Partition once it attains its maximum size.
+The time a producer will wait for its local batch to attain its batch size before it's dispatched to the partition leader 
+can be configured through the config parameter `linger.ms`
+
+
+## Producer Pulishing modes
+
+* Synchronous:  
+  the client is blocked until an acknowledgement is received from the Partition Leader
+  before passing the next message.
+  This method return a RecordMetaData Object containing the partition where the message was published to
+  and the Offset for the message in that partition
+  This method guaranties message delivery and allows for the message errors to be treated in the same client thread
+  to resend the message or ignore it.
+  Drawback of the method is that it is slow since it sends one message at a time until 
+  acknowledgement of the message's reception 
+  Synchronous mose is blocking and does not exploit the batch publishing capability of the producer
+
+
+* Asynchronous with No-Check:  
+  The client sends the message to the Producer through a separate thread and does not wait for the acknowledgement
+  The advantage of this method is Low Latency and the Scaling capability, but it has a drawback
+  that sent messages are not tracked and therefore messages can be missed or not replicated without
+  the ability to do a retry.
+
+
+* Asynchronous with Callback:  
+  This is similar to Asynchronous with No-Check method in the way that it does not wait for Acknowledgment for the successful
+  receipt of the message, however it provides a callback function with a RecordMetadData object 
+  and the occurring exceptions to process the results.
+  This method offers Low Latency, but error handling can be complex especially if message ordering is a strict requirement
+
+The publishing mode can be chosen based on what method is called on the producer:  
+* producer.send(producerRecord) : void // asynchronous without any check  
+
+* producer.send(producerRecord).get() : RecordMetadata, throws Exception // synchronous, block and wait for confirmation  
+
+* producer.send(producerRecord, asyncCallback) : void // asynchronous with callback  
+  the callback parameter is an instance of a class that implements the org.apache.kafka.clients.producer.Callback interface
+
+## Acknowledgements ##
+There are 3 acknowledgement types which can be configured during the creation of a producer using the parameter 'acks'  
+* 0 : means no acknowledgment is needed, as soon as the message is put onto the socket buffer it is considered sent
+* 1 : guarentees the Leader Replica will send back an acknowledgement as soon it receives the message and saves it into it's local log
+* all : This is equivalent to the acks=**-1** setting. the Leader Replica must wait for all In-Sync follower replicas to acknowledge the reception of the message before sending back an acknowledgement itself
+
+```
+// example
+properties config = new Properties();  
+config.put("acks", "all");  
+KafkaProducer<String, String> producer = new KafkaProducer<>(config);  
+```
+
+All Kafka configuration parameters can be found at this [Link](https://kafka.apache.org/documentation.html#producerconfigs)
+
+
+
 
