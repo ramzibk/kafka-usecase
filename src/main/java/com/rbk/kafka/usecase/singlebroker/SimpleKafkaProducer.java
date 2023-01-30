@@ -1,4 +1,4 @@
-package com.rbk.kafka.usecase;
+package com.rbk.kafka.usecase.singlebroker;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;

@@ -1,4 +1,4 @@
-package com.rbk.kafka.usecase;
+package com.rbk.kafka.usecase.singlebroker;
 
 
 import java.time.Duration;
